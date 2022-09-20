@@ -132,7 +132,8 @@ foreach my $attributes ( @attributes ) {
 		# DEFINE START TIME
 		$start    =~ s/Z//g;
 		$start    =~ s/ /T/g;
-		my $startGER  = DateTime::Format::DateParse->parse_datetime($start, 'Europe/Berlin');
+		#my $startGER  = DateTime::Format::DateParse->parse_datetime($start, 'Europe/Berlin');
+		my $startGER  = DateTime::Format::DateParse->parse_datetime($start, 'America/Halifax');
 		$startGER->set_time_zone('UTC');
 		my $s_YMD = $startGER->ymd;
 		$s_YMD    =~ s/-//g;
@@ -143,7 +144,8 @@ foreach my $attributes ( @attributes ) {
 		# DEFINE END TIME
 		$end      =~ s/Z//g;
 		$end      =~ s/ /T/g;
-		my $endGER = DateTime::Format::DateParse->parse_datetime($end, 'Europe/Berlin');
+		#my $endGER = DateTime::Format::DateParse->parse_datetime($end, 'Europe/Berlin');
+		my $endGER = DateTime::Format::DateParse->parse_datetime($end, 'America/Halifax');
 		$endGER->set_time_zone('UTC');
 		my $e_YMD = $endGER->ymd;
 		$e_YMD    =~ s/-//g;
@@ -217,6 +219,7 @@ foreach my $attributes ( @attributes ) {
 				print STDERR "[ EPG WARNING ] Channel ID unknown: " . $cid . "\n";
 			}
 			
+
 			# TITLE (language)
 			$title =~ s/\&/\&amp;/g;
                         $title =~ s/<3/love/g;
@@ -236,7 +239,7 @@ foreach my $attributes ( @attributes ) {
 				$desc =~ s/\&/\&amp;/g;					# REQUIRED TO READ XML FILE CORRECTLY				
 				print "  <desc lang=\"$languageVER\">$desc</desc>\n";
 			}
-			
+	
  			#CREDITS (condition)
 			if( defined $director ) {
 				$director =~ s/\&/\&amp;/g; # REQUIRED TO READ XML FILE CORRECTLY	
@@ -262,12 +265,7 @@ foreach my $attributes ( @attributes ) {
 			# DATE (condition)
 			if( defined $date ) {
 				print "  <date>$date</date>\n";
-			}
-			
-			# COUNTRY (condition)
-			if( defined $country ) {
-				print "  <country>" . uc($country) . "</country>\n";
-			}
+			}	
 			
 			# CATEGORIES (USE ONE CATEGORY ONLY) (condition) (language) (settings)
 			if ( defined $genre ) {
@@ -281,14 +279,26 @@ foreach my $attributes ( @attributes ) {
 					}
 				}elsif ( $setup_genre eq $disabled ) {
 					print "  <category lang=\"$languageVER\">$genre</category>\n";
+						#add movie tag if longer than 89min, not in genre string, no series and no episode define
+						if 	(	$endUTC - $startUTC  > 8900 
+								&& $genre !~ m/(Doku|doku|Serie|serie|Talk|talk|Magazin|magazin|Nachrichten|Show|show|Werbesendung|Reportage|reportage|Sonstige|sport|soap|Verbrauchertipps)/ 
+								&& !defined $series 
+								&& !defined $episode){
+							print "  <category lang=\"$languageVER\">" . "Movie" . "</category>\n";
+						}
 				}
-			}
+			}		
+			
+			# COUNTRY (condition)
+		#	if( defined $country ) {
+		#		print "  <country>" . uc($country) . "</country>\n";
+		#	}
 			
 			# IMAGE (condition)
 			if( defined $broadcast->{'images'}[0]{'size4'} ) {
 				print "  <icon src=\"" . $broadcast->{'images'}[0]{'size4'} . "\" />\n";
-			}
-
+			}			
+		
 
 			# SEASON/EPISODE REQUIED TO READ XML CORRECTLY
 			if( defined $series ) {
@@ -340,18 +350,25 @@ foreach my $attributes ( @attributes ) {
 				}
 			}
 			
+			
+					
 			# SEASON/EPISODE (ONSCREEN) (condition) (settings)
 			if( $setup_episode eq $onscreen ) {
 				if( defined $series ) {
 					if( defined $episode ) {
 						print "  <episode-num system=\"onscreen\">S$series E$episode</episode-num>\n";
+						print "  <episode-num system=\"common\">S${series}E${episode}</episode-num>\n";
 					} else {
 						print "  <episode-num system=\"onscreen\">S$series</episode-num>\n";
+						print "  <episode-num system=\"common\">S$series</episode-num>\n";
 					}
 				} elsif( defined $episode ) {
 					print "  <episode-num system=\"onscreen\">E$episode</episode-num>\n";
+					print "  <episode-num system=\"common\">E$episode</episode-num>\n";
 				}
 			}
+			#<episode-num system="common">S49E243</episode-num>
+			
 			
 			# AGE RATING (condition)
 			if( defined $age) {
