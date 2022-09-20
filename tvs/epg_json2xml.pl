@@ -217,11 +217,6 @@ foreach my $attributes ( @attributes ) {
 				print STDERR "[ EPG WARNING ] Channel ID unknown: " . $cid . "\n";
 			}
 			
-			# IMAGE (condition)
-			if( defined $broadcast->{'images'}[0]{'size4'} ) {
-				print "  <icon src=\"" . $broadcast->{'images'}[0]{'size4'} . "\" />\n";
-			}
-			
 			# TITLE (language)
 			$title =~ s/\&/\&amp;/g;
                         $title =~ s/<3/love/g;
@@ -287,6 +282,11 @@ foreach my $attributes ( @attributes ) {
 				}elsif ( $setup_genre eq $disabled ) {
 					print "  <category lang=\"$languageVER\">$genre</category>\n";
 				}
+			}
+			
+			# IMAGE (condition)
+			if( defined $broadcast->{'images'}[0]{'size4'} ) {
+				print "  <icon src=\"" . $broadcast->{'images'}[0]{'size4'} . "\" />\n";
 			}
 
 
